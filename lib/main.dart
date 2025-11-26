@@ -342,40 +342,6 @@ class _MFTMonitorPageState extends State<MFTMonitorPage> {
           pressMax: 1024,
           pressUnit: 'ADC',
         ),
-
-        const SizedBox(height: 8),
-
-        // Position & Control
-        PositionDisplay(
-          position: info.pistonPos,
-          valve1Open: info.valve1Open,
-          valve2Open: info.valve2Open,
-          motorVoltage: info.motorVoltage,
-        ),
-
-        const SizedBox(height: 8),
-
-        // Frequency info
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Frequencies',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Divider(),
-              Text('Temp: ${info.temperatureFreq.toStringAsFixed(2)} Hz'),
-              Text('Press: ${info.pressureFreq.toStringAsFixed(2)} Hz'),
-            ],
-          ),
-        ),
       ],
     );
   }

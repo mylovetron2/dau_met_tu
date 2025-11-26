@@ -106,6 +106,24 @@ class DataFrame {
   }
 
   /// Parse PIC16F877A frame (50 bytes: 48 data + 0xAA 0xAA)
+  /// Frame structure:
+  /// data[0] = sign bit (0/1)
+  /// data[1-6] = Depth BCD (donvi, chuc, tram, nghin, chucnghin, tramnghin)
+  /// data[7-11] = Tension BCD
+  /// data[12-15] = Speed BCD
+  /// data[16-19] = Raw sdepth (32-bit signed)
+  /// data[20-21] = ADC[0] Tension (16-bit)
+  /// data[22-23] = ADC[1] Magnetometer
+  /// data[24-25] = ADC[2] Reserved
+  /// data[26-27] = ADC[3] N-VAC
+  /// data[28-29] = ADC[4] N-IAC
+  /// data[30-31] = ADC[5] Unused
+  /// data[32-33] = ADC[6] N-VDC
+  /// data[34-35] = ADC[7] N-IDC
+  /// data[36-39] = Raw depth from PIC12F675 (32-bit signed)
+  /// data[40-41] = Delta time (timer*100ms)
+  /// data[42-47] = Unused
+  /// data[48-49] = Tailers (0xAA 0xAA)
   factory DataFrame.fromPIC(List<int> bytes) {
     if (bytes.length != 50) {
       throw ArgumentError('PIC frame phải có 50 bytes');
@@ -116,7 +134,7 @@ class DataFrame {
       throw ArgumentError('PIC frame tailers không đúng (cần 0xAA 0xAA)');
     }
 
-    // Parse raw depth từ bytes 16-19 (32-bit signed)
+    // Parse raw sdepth từ bytes 16-19 (32-bit signed)
     int rawDepth =
         bytes[16] | (bytes[17] << 8) | (bytes[18] << 16) | (bytes[19] << 24);
     if (rawDepth > 0x7FFFFFFF) rawDepth -= 0x100000000;
@@ -131,13 +149,13 @@ class DataFrame {
     // Thêm raw depth vào channel 8
     channels.add(rawDepth);
 
-    // Parse encoder depth từ bytes 36-39 (từ PIC12F675)
+    // Parse encoder depth từ bytes 36-39 (từ PIC12F675) (32-bit signed)
     int encoderDepth =
         bytes[36] | (bytes[37] << 8) | (bytes[38] << 16) | (bytes[39] << 24);
     if (encoderDepth > 0x7FFFFFFF) encoderDepth -= 0x100000000;
     channels.add(encoderDepth);
 
-    // Parse delta time (bytes 40-41)
+    // Parse delta time (bytes 40-41) - timer*100ms
     int deltaTime = bytes[40] | (bytes[41] << 8);
     channels.add(deltaTime);
 

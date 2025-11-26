@@ -375,3 +375,24 @@ testWidgets('Connect and display data', (tester) async {
 - Flutter Documentation: https://flutter.dev
 - USB Serial Plugin: https://pub.dev/packages/usb_serial
 - MFT3 C++ Project: Tại thư mục `d:\MFT3\MFT3\`
+
+
+
+void update_data() {
+   data[0] = sign bit (0/1)
+   data[1-6] = Depth BCD (donvi, chuc, tram, nghin, chucnghin, tramnghin)
+   data[7-11] = Tension BCD
+   data[12-15] = Speed BCD
+   data[16-19] = Raw sdepth (32-bit signed)
+   data[20-21] = ADC[0] Tension (16-bit)
+   data[22-23] = ADC[1] Magnetometer
+   data[24-25] = ADC[2] Reserved
+   data[26-27] = ADC[3] N-VAC
+   data[28-29] = ADC[4] N-IAC
+   data[30-31] = ADC[5]
+   data[32-33] = ADC[6] N-VDC
+   data[34-35] = ADC[7] N-IDC
+   data[36-39] = Raw depth from PIC12F675
+   data[40-41] = Delta time (timer*100ms)
+   // data[42-47] unused
+}
