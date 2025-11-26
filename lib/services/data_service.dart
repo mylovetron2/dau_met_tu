@@ -65,67 +65,117 @@ class DataService {
 
     // Tìm và parse các frame trong buffer
     while (_buffer.length >= frameSize) {
-      // Tìm header 0xAA
-      int headerIndex = _buffer.indexOf(0xAA);
+      if (_isPICMode) {
+        // PIC mode: Tìm tailers 0xAA 0xAA (frame không có header)
+        int tailerIndex = -1;
+        for (int i = 0; i <= _buffer.length - 2; i++) {
+          if (_buffer[i] == 0xAA && _buffer[i + 1] == 0xAA) {
+            tailerIndex = i;
+            break;
+          }
+        }
 
-      if (headerIndex == -1) {
-        // Không tìm thấy header, xóa buffer
-        print('❌ Không tìm thấy header 0xAA trong ${_buffer.length} bytes');
-        _buffer.clear();
-        break;
-      }
+        if (tailerIndex == -1) {
+          // Không tìm thấy tailers, giữ lại frameSize-2 bytes cuối
+          if (_buffer.length > frameSize - 2) {
+            int bytesToRemove = _buffer.length - (frameSize - 2);
+            _buffer.removeRange(0, bytesToRemove);
+            print(
+              '⚠️  Chưa tìm thấy tailers AA AA, giữ lại ${_buffer.length} bytes',
+            );
+          }
+          break;
+        }
 
-      if (headerIndex > 0) {
-        print('⚠️  Bỏ qua $headerIndex bytes trước header');
-      }
+        // Frame phải có đủ 48 bytes data trước tailers
+        if (tailerIndex < 48) {
+          print('⚠️  Tailers ở vị trí $tailerIndex (cần >= 48), bỏ qua');
+          _buffer.removeRange(0, tailerIndex + 2);
+          continue;
+        }
 
-      // Xóa dữ liệu trước header
-      if (headerIndex > 0) {
-        _buffer.removeRange(0, headerIndex);
-      }
+        // Frame starts at (tailerIndex - 48)
+        int frameStart = tailerIndex - 48;
+        if (frameStart > 0) {
+          print('⚠️  Bỏ qua $frameStart bytes trước frame');
+          _buffer.removeRange(0, frameStart);
+          tailerIndex -= frameStart;
+        }
 
-      // Kiểm tra đủ dữ liệu cho frame
-      if (_buffer.length < frameSize) {
-        break;
-      }
+        // Kiểm tra đủ 50 bytes
+        if (_buffer.length < frameSize) {
+          break;
+        }
 
-      // Kiểm tra tailer
-      if (_buffer[frameSize - 1] != 0x55) {
-        // Tailer không đúng, xóa header hiện tại và tìm tiếp
-        print(
-          '❌ Tailer không đúng: 0x${_buffer[frameSize - 1].toRadixString(16).padLeft(2, '0').toUpperCase()} (mong đợi 0x55)',
-        );
-        _buffer.removeAt(0);
-        continue;
-      }
+        print('✅ Tìm thấy PIC frame (tailers tại bytes 48-49)');
 
-      print('✅ Tìm thấy frame hợp lệ (Header: 0xAA, Tailer: 0x55)');
+        // Parse PIC frame
+        try {
+          final frameBytes = _buffer.sublist(0, frameSize);
+          print('🔍 Frame bytes: ${_bytesToHex(frameBytes)}');
 
-      // Parse frame
-      try {
-        final frameBytes = _buffer.sublist(0, frameSize);
-        print('🔍 Frame bytes: ${_bytesToHex(frameBytes)}');
-
-        final DataFrame frame;
-        if (_isPICMode) {
-          frame = DataFrame.fromPIC(frameBytes);
+          final frame = DataFrame.fromPIC(frameBytes);
           print('✅ PIC frame parsed! Channels: ${frame.channels.length}');
-        } else {
-          frame = DataFrame.fromBytes(frameBytes);
+
+          // Emit frame
+          _frameController.add(frame);
+
+          // Xóa frame đã parse
+          _buffer.removeRange(0, frameSize);
+        } catch (e) {
+          print('❌ Lỗi parse PIC frame: $e');
+          // Xóa 2 bytes tailers và tìm frame tiếp theo
+          _buffer.removeRange(0, 2);
+        }
+      } else {
+        // MFT3 mode: Tìm header 0xAA
+        int headerIndex = _buffer.indexOf(0xAA);
+
+        if (headerIndex == -1) {
+          print('❌ Không tìm thấy header 0xAA trong ${_buffer.length} bytes');
+          _buffer.clear();
+          break;
+        }
+
+        if (headerIndex > 0) {
+          print('⚠️  Bỏ qua $headerIndex bytes trước header');
+          _buffer.removeRange(0, headerIndex);
+        }
+
+        if (_buffer.length < frameSize) {
+          break;
+        }
+
+        // Kiểm tra tailer 0x55
+        if (_buffer[frameSize - 1] != 0x55) {
+          print(
+            '❌ MFT3 tailer không đúng: 0x${_buffer[frameSize - 1].toRadixString(16).padLeft(2, '0').toUpperCase()}',
+          );
+          _buffer.removeAt(0);
+          continue;
+        }
+
+        print('✅ Tìm thấy MFT3 frame (Header: 0xAA, Tailer: 0x55)');
+
+        // Parse MFT3 frame
+        try {
+          final frameBytes = _buffer.sublist(0, frameSize);
+          print('🔍 Frame bytes: ${_bytesToHex(frameBytes)}');
+
+          final frame = DataFrame.fromBytes(frameBytes);
           print(
             '✅ MFT3 frame parsed! Channels: ${frame.channels.length}, TempFreq: ${frame.temperatureFreq.toStringAsFixed(2)}, PressFreq: ${frame.pressureFreq.toStringAsFixed(2)}',
           );
+
+          // Emit frame
+          _frameController.add(frame);
+
+          // Xóa frame đã parse
+          _buffer.removeRange(0, frameSize);
+        } catch (e) {
+          print('❌ Lỗi parse MFT3 frame: $e');
+          _buffer.removeAt(0);
         }
-
-        // Emit frame
-        _frameController.add(frame);
-
-        // Xóa frame đã parse
-        _buffer.removeRange(0, frameSize);
-      } catch (e) {
-        print('Lỗi parse frame: $e');
-        // Xóa header và tìm frame tiếp theo
-        _buffer.removeAt(0);
       }
     }
   }
@@ -210,6 +260,13 @@ class DataService {
 
   /// Chuyển bytes sang chuỗi hex để debug
   String _bytesToHex(List<int> bytes) {
+    // Luôn hiển thị đầy đủ cho PIC frame (50 bytes)
+    if (_isPICMode && bytes.length <= 50) {
+      return bytes
+          .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
+          .join(' ');
+    }
+
     if (bytes.length > 20) {
       // Nếu quá dài, chỉ hiển thị 20 bytes đầu
       final preview = bytes.sublist(0, 20);

@@ -243,22 +243,121 @@ CurveChartPainter.paint
    Draw axes
 ```
 
-## Cấu hình Curves Mặc định
+## Cấu hình Curves Mặc định (PIC 50-byte Frame)
 
 ```dart
 DefaultCurves.defaults = [
+  // ADC[0] Tension (bytes 20-21)
   CurveConfig(
-    mnemonic: 'HPRS',
-    name: 'Hydraulic Pressure',
-    unit: 'PSI',
+    mnemonic: 'TENS',
+    name: 'Tension',
+    unit: 'kg',
     channelIndex: 0,
     leftScale: 0,
-    rightScale: 5000,
+    rightScale: 1024,
     color: Colors.red,
   ),
-  // ... thêm 4 curves khác
+  // ADC[1] Magnetometer (bytes 22-23)
+  CurveConfig(
+    mnemonic: 'MAG',
+    name: 'Magnetometer',
+    unit: 'ADC',
+    channelIndex: 1,
+    leftScale: 0,
+    rightScale: 1024,
+    color: Colors.purple,
+  ),
+  // ADC[3] N-VAC (bytes 26-27)
+  CurveConfig(
+    mnemonic: 'VAC',
+    name: 'Voltage AC',
+    unit: 'V',
+    channelIndex: 3,
+    leftScale: 0,
+    rightScale: 1024,
+    color: Colors.blue,
+  ),
+  // ADC[4] N-IAC (bytes 28-29)
+  CurveConfig(
+    mnemonic: 'IAC',
+    name: 'Current AC',
+    unit: 'A',
+    channelIndex: 4,
+    leftScale: 0,
+    rightScale: 1024,
+    color: Colors.cyan,
+  ),
+  // ADC[6] N-VDC (bytes 32-33)
+  CurveConfig(
+    mnemonic: 'VDC',
+    name: 'Voltage DC',
+    unit: 'V',
+    channelIndex: 6,
+    leftScale: 0,
+    rightScale: 1024,
+    color: Colors.green,
+  ),
+  // ADC[7] N-IDC (bytes 34-35)
+  CurveConfig(
+    mnemonic: 'IDC',
+    name: 'Current DC',
+    unit: 'A',
+    channelIndex: 7,
+    leftScale: 0,
+    rightScale: 1024,
+    color: Colors.lime,
+  ),
+  // Raw depth (bytes 16-19)
+  CurveConfig(
+    mnemonic: 'RDEP',
+    name: 'Raw Depth',
+    unit: 'm',
+    channelIndex: 8,
+    leftScale: 0,
+    rightScale: 5000,
+    color: Colors.orange,
+  ),
+  // Encoder depth (bytes 36-39)
+  CurveConfig(
+    mnemonic: 'EDEP',
+    name: 'Encoder Depth',
+    unit: 'm',
+    channelIndex: 9,
+    leftScale: 0,
+    rightScale: 5000,
+    color: Colors.brown,
+  ),
+  // Delta time (bytes 40-41)
+  CurveConfig(
+    mnemonic: 'DTIME',
+    name: 'Delta Time',
+    unit: 'ms',
+    channelIndex: 10,
+    leftScale: 0,
+    rightScale: 10000,
+    color: Colors.pink,
+    isActive: false, // Mặc định tắt
+  ),
 ]
 ```
+
+### Channel Mapping
+
+| Channel | Bytes   | Description              | Curve    | Unit |
+|---------|---------|--------------------------|----------|------|
+| 0       | 20-21   | ADC[0] Tension           | TENS     | kg   |
+| 1       | 22-23   | ADC[1] Magnetometer      | MAG      | ADC  |
+| 2       | 24-25   | ADC[2] Reserved          | -        | -    |
+| 3       | 26-27   | ADC[3] N-VAC             | VAC      | V    |
+| 4       | 28-29   | ADC[4] N-IAC             | IAC      | A    |
+| 5       | 30-31   | ADC[5] Unused            | -        | -    |
+| 6       | 32-33   | ADC[6] N-VDC             | VDC      | V    |
+| 7       | 34-35   | ADC[7] N-IDC             | IDC      | A    |
+| 8       | 16-19   | Raw sdepth (32-bit)      | RDEP     | m    |
+| 9       | 36-39   | Encoder depth (32-bit)   | EDEP     | m    |
+| 10      | 40-41   | Delta time (16-bit)      | DTIME    | ms   |
+
+**Note**: BCD fields (bytes 1-15 for Depth, Tension, Speed) are not displayed in curves but available in the frame structure.
 
 ## Performance Optimization
 

@@ -77,53 +77,99 @@ class CurveConfig {
   }
 }
 
-/// Danh sách curve mặc định
+/// Danh sách curve mặc định cho PIC 50-byte frame
 class DefaultCurves {
   static List<CurveConfig> get defaults => [
+    // ADC[0] Tension (bytes 20-21)
     CurveConfig(
-      mnemonic: 'HPRS',
-      name: 'Hydraulic Pressure',
-      unit: 'PSI',
+      mnemonic: 'TENS',
+      name: 'Tension',
+      unit: 'kg',
       channelIndex: 0,
       leftScale: 0,
-      rightScale: 5000,
+      rightScale: 1024,
       color: Colors.red,
     ),
+    // ADC[1] Magnetometer (bytes 22-23)
     CurveConfig(
-      mnemonic: 'HTEM',
-      name: 'Hydraulic Temperature',
-      unit: '°C',
+      mnemonic: 'MAG',
+      name: 'Magnetometer',
+      unit: 'ADC',
       channelIndex: 1,
       leftScale: 0,
-      rightScale: 100,
-      color: Colors.orange,
+      rightScale: 1024,
+      color: Colors.purple,
     ),
+    // ADC[3] N-VAC (bytes 26-27)
     CurveConfig(
-      mnemonic: 'SPRS',
-      name: 'Sample Pressure',
-      unit: 'PSI',
-      channelIndex: 2,
-      leftScale: 0,
-      rightScale: 5000,
-      color: Colors.blue,
-    ),
-    CurveConfig(
-      mnemonic: 'STEM',
-      name: 'Sample Temperature',
-      unit: '°C',
+      mnemonic: 'VAC',
+      name: 'Voltage AC',
+      unit: 'V',
       channelIndex: 3,
       leftScale: 0,
-      rightScale: 100,
-      color: Colors.cyan,
+      rightScale: 1024,
+      color: Colors.blue,
     ),
+    // ADC[4] N-IAC (bytes 28-29)
     CurveConfig(
-      mnemonic: 'MVOL',
-      name: 'Motor Voltage',
-      unit: 'V',
+      mnemonic: 'IAC',
+      name: 'Current AC',
+      unit: 'A',
       channelIndex: 4,
       leftScale: 0,
-      rightScale: 24,
+      rightScale: 1024,
+      color: Colors.cyan,
+    ),
+    // ADC[6] N-VDC (bytes 32-33)
+    CurveConfig(
+      mnemonic: 'VDC',
+      name: 'Voltage DC',
+      unit: 'V',
+      channelIndex: 6,
+      leftScale: 0,
+      rightScale: 1024,
       color: Colors.green,
+    ),
+    // ADC[7] N-IDC (bytes 34-35)
+    CurveConfig(
+      mnemonic: 'IDC',
+      name: 'Current DC',
+      unit: 'A',
+      channelIndex: 7,
+      leftScale: 0,
+      rightScale: 1024,
+      color: Colors.lime,
+    ),
+    // Raw depth (bytes 16-19)
+    CurveConfig(
+      mnemonic: 'RDEP',
+      name: 'Raw Depth',
+      unit: 'm',
+      channelIndex: 8,
+      leftScale: 0,
+      rightScale: 5000,
+      color: Colors.orange,
+    ),
+    // Encoder depth from PIC12F675 (bytes 36-39)
+    CurveConfig(
+      mnemonic: 'EDEP',
+      name: 'Encoder Depth',
+      unit: 'm',
+      channelIndex: 9,
+      leftScale: 0,
+      rightScale: 5000,
+      color: Colors.brown,
+    ),
+    // Delta time (bytes 40-41)
+    CurveConfig(
+      mnemonic: 'DTIME',
+      name: 'Delta Time',
+      unit: 'ms',
+      channelIndex: 10,
+      leftScale: 0,
+      rightScale: 10000,
+      color: Colors.pink,
+      isActive: false, // Mặc định tắt
     ),
   ];
 }
