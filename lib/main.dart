@@ -202,7 +202,7 @@ class _MFTMonitorPageState extends State<MFTMonitorPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('MFT Monitor - Flutter'),
+        title: const Text('MFT Monitor'),
         actions: [
           IconButton(
             icon: const Icon(Icons.timeline),

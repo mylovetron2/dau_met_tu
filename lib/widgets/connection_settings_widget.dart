@@ -93,75 +93,89 @@ class _ConnectionSettingsWidgetState extends State<ConnectionSettingsWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Cài đặt kết nối',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Chọn loại kết nối
+            // Header với trạng thái
             Row(
               children: [
-                const Text('Loại kết nối: '),
-                const SizedBox(width: 16),
-                SegmentedButton<ConnectionType>(
-                  segments: const [
-                    ButtonSegment(
-                      value: ConnectionType.usb,
-                      label: Text('USB'),
-                      icon: Icon(Icons.usb),
-                    ),
-                    ButtonSegment(
-                      value: ConnectionType.socket,
-                      label: Text('Socket'),
-                      icon: Icon(Icons.wifi),
-                    ),
-                  ],
-                  selected: {_selectedType},
-                  onSelectionChanged: _isConnected
-                      ? null
-                      : (Set<ConnectionType> newSelection) {
-                          setState(() {
-                            _selectedType = newSelection.first;
-                          });
-                        },
+                const Text(
+                  'Kết nối',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Cài đặt theo loại
-            if (_selectedType == ConnectionType.usb)
-              _buildUsbSettings()
-            else
-              _buildSocketSettings(),
-
-            const SizedBox(height: 16),
-
-            // Nút kết nối/ngắt kết nối
-            Row(
-              children: [
+                const Spacer(),
+                if (_isConnected) ...[
+                  const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    _selectedType == ConnectionType.usb
+                        ? 'USB'
+                        : '${_hostController.text}:${_portController.text}',
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
                 ElevatedButton.icon(
                   onPressed: _isConnected ? _disconnect : _connect,
-                  icon: Icon(_isConnected ? Icons.stop : Icons.play_arrow),
-                  label: Text(_isConnected ? 'Ngắt kết nối' : 'Kết nối'),
+                  icon: Icon(
+                    _isConnected ? Icons.stop : Icons.play_arrow,
+                    size: 18,
+                  ),
+                  label: Text(_isConnected ? 'Ngắt' : 'Kết nối'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _isConnected ? Colors.red : Colors.green,
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                if (_isConnected)
-                  const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 4),
-                      Text('Đang kết nối'),
-                    ],
-                  ),
               ],
             ),
+
+            // Chỉ hiển thị settings khi chưa kết nối
+            if (!_isConnected) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // Chọn loại kết nối
+              Row(
+                children: [
+                  const Text('Loại: '),
+                  const SizedBox(width: 16),
+                  SegmentedButton<ConnectionType>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ConnectionType.usb,
+                        label: Text('USB'),
+                        icon: Icon(Icons.usb),
+                      ),
+                      ButtonSegment(
+                        value: ConnectionType.socket,
+                        label: Text('Socket'),
+                        icon: Icon(Icons.wifi),
+                      ),
+                    ],
+                    selected: {_selectedType},
+                    onSelectionChanged: (Set<ConnectionType> newSelection) {
+                      setState(() {
+                        _selectedType = newSelection.first;
+                      });
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Cài đặt theo loại
+              if (_selectedType == ConnectionType.usb)
+                _buildUsbSettings()
+              else
+                _buildSocketSettings(),
+            ],
           ],
         ),
       ),
