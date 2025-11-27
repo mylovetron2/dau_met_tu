@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/data_service.dart';
 import '../services/data_source.dart';
+import '../services/mock_data_source.dart';
 import '../services/socket_data_source.dart';
 import '../services/usb_data_source.dart';
 
@@ -24,6 +25,7 @@ class ConnectionSettingsWidget extends StatefulWidget {
 class _ConnectionSettingsWidgetState extends State<ConnectionSettingsWidget> {
   ConnectionType _selectedType = ConnectionType.usb;
   bool _isConnected = false;
+  bool _useMockData = false; // Chế độ dữ liệu giả
 
   // USB settings
   final TextEditingController _baudRateController = TextEditingController(
@@ -49,7 +51,10 @@ class _ConnectionSettingsWidgetState extends State<ConnectionSettingsWidget> {
   Future<void> _connect() async {
     DataSource? dataSource;
 
-    if (_selectedType == ConnectionType.usb) {
+    if (_useMockData) {
+      // Sử dụng mock data source
+      dataSource = MockDataSource();
+    } else if (_selectedType == ConnectionType.usb) {
       final baudRate = int.tryParse(_baudRateController.text) ?? 19200;
       dataSource = UsbDataSource(baudRate: baudRate);
     } else {
@@ -105,7 +110,9 @@ class _ConnectionSettingsWidgetState extends State<ConnectionSettingsWidget> {
                   const Icon(Icons.check_circle, color: Colors.green, size: 20),
                   const SizedBox(width: 4),
                   Text(
-                    _selectedType == ConnectionType.usb
+                    _useMockData
+                        ? '🎭 Mock Data'
+                        : _selectedType == ConnectionType.usb
                         ? 'USB'
                         : '${_hostController.text}:${_portController.text}',
                     style: const TextStyle(
@@ -140,41 +147,71 @@ class _ConnectionSettingsWidgetState extends State<ConnectionSettingsWidget> {
               const Divider(),
               const SizedBox(height: 16),
 
-              // Chọn loại kết nối
+              // Toggle Mock Data
               Row(
                 children: [
-                  const Text('Loại: '),
+                  const Icon(Icons.science, size: 20),
+                  const SizedBox(width: 8),
+                  const Text('Dữ liệu giả (Mock):'),
                   const SizedBox(width: 16),
-                  SegmentedButton<ConnectionType>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ConnectionType.usb,
-                        label: Text('USB'),
-                        icon: Icon(Icons.usb),
-                      ),
-                      ButtonSegment(
-                        value: ConnectionType.socket,
-                        label: Text('Socket'),
-                        icon: Icon(Icons.wifi),
-                      ),
-                    ],
-                    selected: {_selectedType},
-                    onSelectionChanged: (Set<ConnectionType> newSelection) {
+                  Switch(
+                    value: _useMockData,
+                    onChanged: (value) {
                       setState(() {
-                        _selectedType = newSelection.first;
+                        _useMockData = value;
                       });
                     },
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _useMockData ? 'BẬT' : 'TẮT',
+                    style: TextStyle(
+                      color: _useMockData ? Colors.green : Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              if (!_useMockData) ...[
+                const SizedBox(height: 16),
 
-              // Cài đặt theo loại
-              if (_selectedType == ConnectionType.usb)
-                _buildUsbSettings()
-              else
-                _buildSocketSettings(),
+                // Chọn loại kết nối
+                Row(
+                  children: [
+                    const Text('Loại: '),
+                    const SizedBox(width: 16),
+                    SegmentedButton<ConnectionType>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ConnectionType.usb,
+                          label: Text('USB'),
+                          icon: Icon(Icons.usb),
+                        ),
+                        ButtonSegment(
+                          value: ConnectionType.socket,
+                          label: Text('Socket'),
+                          icon: Icon(Icons.wifi),
+                        ),
+                      ],
+                      selected: {_selectedType},
+                      onSelectionChanged: (Set<ConnectionType> newSelection) {
+                        setState(() {
+                          _selectedType = newSelection.first;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Cài đặt theo loại
+                if (_selectedType == ConnectionType.usb)
+                  _buildUsbSettings()
+                else
+                  _buildSocketSettings(),
+              ],
             ],
           ],
         ),

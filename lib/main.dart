@@ -294,6 +294,30 @@ class _MFTMonitorPageState extends State<MFTMonitorPage> {
 
         const SizedBox(height: 8),
 
+        // AC Power (từ PIC ADC[3-4])
+        PowerDisplay(
+          title: 'AC Power',
+          voltage: info.hydraulicTemp, // ADC[3] - N-VAC
+          current: info.sampleTemp, // ADC[4] - N-IAC
+          voltageUnit: 'ADC',
+          currentUnit: 'ADC',
+          backgroundColor: Colors.yellow[50],
+        ),
+
+        const SizedBox(height: 8),
+
+        // DC Power (từ PIC ADC[6-7])
+        PowerDisplay(
+          title: 'DC Power',
+          voltage: info.samplePress, // ADC[6] - N-VDC
+          current: info.quartzTemp, // ADC[7] - N-IDC
+          voltageUnit: 'ADC',
+          currentUnit: 'ADC',
+          backgroundColor: Colors.purple[50],
+        ),
+
+        const SizedBox(height: 8),
+
         // Tension & Magnetometer (từ PIC ADC[0-1])
         DualGauge(
           title: 'Tension & Mag',
@@ -304,40 +328,6 @@ class _MFTMonitorPageState extends State<MFTMonitorPage> {
           tempUnit: 'kg',
           pressLabel: 'Magnetometer',
           pressValue: info.quartzPress, // ADC[1] - Từ trường
-          pressMin: 0,
-          pressMax: 1024,
-          pressUnit: 'ADC',
-        ),
-
-        const SizedBox(height: 8),
-
-        // AC Power (từ PIC ADC[3-4])
-        DualGauge(
-          title: 'AC Power',
-          tempLabel: 'Voltage AC',
-          tempValue: info.hydraulicTemp, // ADC[3] - N-VAC
-          tempMin: 0,
-          tempMax: 1024,
-          tempUnit: 'ADC',
-          pressLabel: 'Current AC',
-          pressValue: info.sampleTemp, // ADC[4] - N-IAC
-          pressMin: 0,
-          pressMax: 1024,
-          pressUnit: 'ADC',
-        ),
-
-        const SizedBox(height: 8),
-
-        // DC Power (từ PIC ADC[6-7])
-        DualGauge(
-          title: 'DC Power',
-          tempLabel: 'Voltage DC',
-          tempValue: info.samplePress, // ADC[6] - N-VDC
-          tempMin: 0,
-          tempMax: 1024,
-          tempUnit: 'ADC',
-          pressLabel: 'Current DC',
-          pressValue: info.quartzTemp, // ADC[7] - N-IDC
           pressMin: 0,
           pressMax: 1024,
           pressUnit: 'ADC',

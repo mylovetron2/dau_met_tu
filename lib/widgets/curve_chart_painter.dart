@@ -149,6 +149,73 @@ class CurveChartPainter extends CustomPainter {
       Offset(size.width, size.height),
       axisPaint,
     );
+
+    // Vẽ nhãn thời gian trên trục Y
+    _drawTimeLabels(canvas, size);
+  }
+
+  void _drawTimeLabels(Canvas canvas, Size size) {
+    final now = DateTime.now();
+    final startTime = now.subtract(timeWindow);
+
+    // Số lượng nhãn thời gian
+    const labelCount = 6;
+
+    final textStyle = TextStyle(
+      color: Colors.black87,
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+    );
+
+    for (int i = 0; i <= labelCount; i++) {
+      // Tính thời gian cho mỗi nhãn
+      final progress = i / labelCount;
+      final timeDuration = now.difference(startTime).inMicroseconds;
+      final labelTime = startTime.add(
+        Duration(microseconds: (timeDuration * progress).round()),
+      );
+
+      // Tính vị trí Y
+      final y = size.height * progress;
+
+      // Format thời gian (HH:mm:ss)
+      final timeText =
+          '${labelTime.hour.toString().padLeft(2, '0')}:'
+          '${labelTime.minute.toString().padLeft(2, '0')}:'
+          '${labelTime.second.toString().padLeft(2, '0')}';
+
+      // Vẽ text với nền trắng để dễ đọc
+      final textSpan = TextSpan(text: timeText, style: textStyle);
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+
+      // Vẽ bên PHẢI trục Y (bên trong canvas)
+      final xOffset = 5.0; // 5 pixel từ trục Y vào trong
+
+      // Clamp yOffset để không bị cắt ở trên và dưới
+      var yOffset = y - textPainter.height / 2;
+      yOffset = yOffset.clamp(0.0, size.height - textPainter.height);
+
+      // Vẽ nền trắng cho text để dễ đọc
+      final bgRect = Rect.fromLTWH(
+        xOffset - 2,
+        yOffset - 1,
+        textPainter.width + 4,
+        textPainter.height + 2,
+      );
+      canvas.drawRect(bgRect, Paint()..color = Colors.white.withOpacity(0.8));
+
+      textPainter.paint(canvas, Offset(xOffset, yOffset));
+
+      // Vẽ tick mark
+      final tickPaint = Paint()
+        ..color = Colors.black
+        ..strokeWidth = 1.5;
+      canvas.drawLine(Offset(0, y), Offset(3, y), tickPaint);
+    }
   }
 
   @override
